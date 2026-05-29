@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Events Kickoff Tool</title>
+<style>
+  :root {
+    --bg: #f6f6f4;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e5e5e2;
+    --accent-soft: #efece6;
+    --link: #2266dd;
+    --ok: #1a7f37;
+    --warn: #b06a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter Tight", "Inter", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 32px 80px; }
+  header.page { margin-bottom: 28px; }
+  h1 { font-size: 32px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 15px; }
+  section.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  h2 { font-size: 18px; margin: 0 0 18px; letter-spacing: -0.01em; }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  label.field { display: block; margin-bottom: 14px; }
+  label.field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], input[type="date"], select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  input:focus, select:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .doc-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .doc-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .doc-item:hover { background: #fafaf8; }
+  .doc-item input[type="checkbox"] { margin-top: 3px; transform: scale(1.1); accent-color: var(--ink); }
+  .doc-item .title { font-weight: 500; font-size: 15px; }
+  .doc-item .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .select-all { font-size: 12px; color: var(--muted); cursor: pointer; user-select: none; }
+  .select-all:hover { color: var(--ink); text-decoration: underline; }
+
+  button.primary {
+    appearance: none;
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button.primary:hover { background: #000; }
+
+  .results { display: none; }
+  .results.show { display: block; }
+
+  .step { margin-bottom: 18px; }
+  .step:last-child { margin-bottom: 0; }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .doc-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: #fff;
+  }
+  .doc-card .name { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+  .doc-card .instr { font-size: 13px; color: var(--muted); margin: 8px 0 10px; line-height: 1.5; }
+  .doc-card .instr strong { color: var(--ink); }
+  .doc-card a.open {
+    display: inline-block;
+    color: var(--link);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  .doc-card a.open:hover { text-decoration: underline; }
+
+  .tip {
+    margin: 10px 0 12px;
+    padding: 10px 14px;
+    background: #fff8e1;
+    border-left: 3px solid #f0b400;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #4a4a48;
+    line-height: 1.5;
+  }
+  .tip strong { color: var(--ink); }
+
+  .embedded {
+    margin: 12px 0;
+    padding: 14px 16px;
+    background: #fafaf8;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .embedded + .embedded { margin-top: 8px; }
+  .embedded .embedded-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .embedded ul { padding-left: 0; margin: 0; list-style: none; }
+  .embedded ul li {
+    font-size: 13.5px;
+    color: var(--ink);
+    padding: 5px 0 5px 22px;
+    position: relative;
+    line-height: 1.45;
+  }
+  .embedded.checklist ul li::before {
+    content: "☐";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .embedded.list ul li::before {
+    content: "•";
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    color: var(--muted);
+  }
+
+  .copy-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--accent-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+  }
+  .copy-row .label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 4px;
+  }
+  .copy-row .val { flex: 1; word-break: break-all; }
+  .copy-btn {
+    appearance: none;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { border-color: var(--ink); }
+  .copy-btn.copied { background: var(--ok); color: #fff; border-color: var(--ok); }
+
+  .reminder {
+    padding: 12px 14px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: var(--accent-soft);
+    font-size: 13px;
+    color: #4a4a48;
+    margin-top: 10px;
+  }
+  .reminder strong { color: var(--ink); }
+
+  .wrap-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid var(--line);
+  }
+  .wrap-section h2 { font-size: 20px; margin-bottom: 6px; }
+  .wrap-section .sub { margin-bottom: 18px; }
+  .wrap-card { border-left: 3px solid var(--warn); }
+  .wrap-card .deadline {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 10px;
+    background: #fff5e6;
+    color: var(--warn);
+    font-size: 12.5px;
+    font-weight: 500;
+    border-radius: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <h1>Brand Events Kickoff Tool</h1>
+    <div class="sub">Fill in the project details, pick the documents you need, and get a copy-paste-ready setup checklist.</div>
+  </header>
+
+  <section class="card">
+    <h2>Project details</h2>
+    <div class="grid-2">
+      <label class="field">
+        <span>Project name</span>
+        <input type="text" id="projectName" placeholder="e.g. Fin Labs NYC">
+      </label>
+      <label class="field">
+        <span>Project type</span>
+        <select id="projectType">
+          <option value="Industry Event">Industry Event</option>
+          <option value="Live Event">Live Event</option>
+          <option value="Creative Ops">Creative Ops</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid-3">
+      <label class="field">
+        <span>Event date</span>
+        <input type="date" id="eventDate">
+      </label>
+      <label class="field">
+        <span>Location</span>
+        <input type="text" id="location" placeholder="e.g. New York, NY">
+      </label>
+      <label class="field">
+        <span>Lead DRI</span>
+        <input type="text" id="leadDRI" placeholder="e.g. Aoife Fitzgerald">
+      </label>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Select documents</h2>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+      <span class="select-all" id="selectAll">Select all</span>
+    </div>
+    <div class="doc-list" id="docList"></div>
+  </section>
+
+  <div style="margin-top: 24px;">
+    <button class="primary" id="generateBtn">Generate setup checklist</button>
+  </div>
+
+  <section class="card results" id="results" style="margin-top: 28px;">
+    <h2>Your setup checklist</h2>
+    <div class="sub" style="margin-bottom: 24px;">Work through these in order. Click any value to copy it to your clipboard.</div>
+
+    <div class="step">
+      <h3><span class="step-num">1</span>Set up your Google Drive folder</h3>
+      <div class="copy-row">
+        <span class="label">Folder path</span>
+        <span class="val" id="folderPath"></span>
+        <button class="copy-btn" data-copy-target="folderPath">Copy</button>
+      </div>
+      <div class="reminder" style="margin-top:8px;">
+        Inside the project folder, create subfolders: <strong>Finance</strong>, <strong>Final Assets</strong>, <strong>Production</strong>, <strong>Legal</strong>.
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-num">2</span>Copy each template into your folder</h3>
+      <div id="docCards"></div>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-num">3</span>Create Slack channels</h3>
+      <div class="copy-row" style="margin-bottom:8px;">
+        <span class="label">Planning</span>
+        <span class="val" id="slackPlanning"></span>
+        <button class="copy-btn" data-copy-target="slackPlanning">Copy</button>
+      </div>
+      <div class="copy-row">
+        <span class="label">Production</span>
+        <span class="val" id="slackProduction"></span>
+        <button class="copy-btn" data-copy-target="slackProduction">Copy</button>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-num">4</span>Complete production-partner briefs after the one pager is ready</h3>
+      <div class="reminder">
+        Once <strong>Megan's one pager</strong> is ready, use it to complete the <strong>Photography brief</strong> and <strong>Broadcast & film brief</strong> before sending to your production partners.
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="step-num">5</span>Reminders</h3>
+      <div class="reminder">
+        The <strong>project one pager</strong> is created by <strong>Megan Moon</strong> — ping her once your folder and channels are live.
+      </div>
+    </div>
+
+    <div class="wrap-section" id="wrapSection">
+      <h2>At the end of your project</h2>
+      <div class="sub">One final document to complete after the event has wrapped.</div>
+      <div class="doc-card wrap-card">
+        <div class="name">Project Wrap Document</div>
+        <a class="open" href="#" target="_blank" rel="noopener" id="wrapTemplateLink">Open template →</a>
+        <div class="instr">
+          Records all essential project details — <strong>partners, spend, assets, and contacts</strong> — for full visibility and easy handover into future projects. Open the template, click <strong>File → Make a copy</strong>, rename it using the file name below, and save it into your project folder.
+        </div>
+        <div class="copy-row">
+          <span class="label">File name</span>
+          <span class="val" id="wrapFileName"></span>
+          <button class="copy-btn" data-copy-target="wrapFileName">Copy</button>
+        </div>
+        <div class="deadline">⏱ Complete this within one week of your event wrapping</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+// ============================================================
+// TEMPLATE LINKS — replace the empty strings with the blank
+// template URLs when they're ready.
+// ============================================================
+const TEMPLATE_URLS = {
+  // TEMPLATE: Project planning doc
+  planning:    'https://docs.google.com/spreadsheets/d/18AjBQyxtosFNDdaq0T9ksZoRTo_KgeE9lqUUJZjMO-4/edit',
+  // TEMPLATE: Project production deck
+  production:  'https://docs.google.com/presentation/d/1APYKC2FZ4taN2J3UQsc2U-hNgev5PySJw_LJBISyQuY/edit',
+  // TEMPLATE: Photography brief
+  photography: 'https://docs.google.com/document/d/1j8fJcAPyXd34wzmvE6Uv53fBOkHktZKd0rZMM92KUdY/edit',
+  // TEMPLATE: Broadcast and film brief
+  broadcast:   'https://docs.google.com/document/d/18kc7_fGfrwbgcmsbnm5hpz8m3ovmh2rMHxmxKB2slTM/edit',
+  // TEMPLATE: ICS brief
+  ics:         '',
+  // TEMPLATE: Film and content deliverables
+  film:        '',
+  // TEMPLATE: Production brief
+  productionBrief: '',
+  // TEMPLATE: Project wrap document
+  wrap:        'https://docs.google.com/document/d/1M-yKxtVX8cuK8B-7s2SPeQ0cL5BUbGgELcusjOk8tqw/edit'
+};
+
+const ONE_PAGER_TIP = 'Tip: Once the one pager has been created by Megan Moon, the photography brief and broadcast & film brief are much easier to complete. Use it as your reference before filling these in.';
+
+// ============================================================
+// Documents shown in the selectable list.
+// ============================================================
+const TEMPLATES = [
+  {
+    id: 'planning',
+    name: 'Project planning doc',
+    desc: 'Milestones, vendors, deliverables, weekly RAG log',
+    url: TEMPLATE_URLS.planning
+  },
+  {
+    id: 'production',
+    name: 'Project production deck',
+    desc: 'Activation concept, run of show, team roles, open items',
+    url: TEMPLATE_URLS.production
+  },
+  {
+    id: 'ics',
+    name: 'ICS brief',
+    desc: 'Creative brief + full asset list for the ICS team',
+    url: TEMPLATE_URLS.ics,
+    processUrl: 'https://docs.google.com/document/d/1z1kO7zTZgQ3geoQ66b5Lhpg3491rcKpn63m8Q66q-Pw/edit',
+    processLabel: 'Follow the ICS brief process outlined here →'
+  },
+  {
+    id: 'photography',
+    name: 'Photography brief',
+    desc: 'Shot list, non-negotiables, creative direction',
+    url: TEMPLATE_URLS.photography,
+    tip: ONE_PAGER_TIP
+  },
+  {
+    id: 'broadcast',
+    name: 'Broadcast and film brief',
+    desc: 'Filming goals, must-capture moments, shot list, tech requirements',
+    url: TEMPLATE_URLS.broadcast,
+    tip: ONE_PAGER_TIP
+  },
+  {
+    id: 'film',
+    name: 'Film and content deliverables',
+    desc: 'Deliverables table, formats, aspect ratios, distribution plan',
+    url: TEMPLATE_URLS.film
+  },
+  {
+    id: 'productionBrief',
+    name: 'Production brief',
+    desc: 'Partner-facing — activation requirements and SOW reference',
+    url: TEMPLATE_URLS.productionBrief
+  }
+];
+
+function renderDocList() {
+  const container = document.getElementById('docList');
+  container.innerHTML = TEMPLATES.map(d => `
+    <label class="doc-item">
+      <input type="checkbox" data-doc="${d.id}">
+      <div>
+        <div class="title">${d.name}</div>
+        <div class="desc">${d.desc}</div>
+      </div>
+    </label>
+  `).join('');
+}
+renderDocList();
+
+document.getElementById('selectAll').addEventListener('click', (e) => {
+  const boxes = document.querySelectorAll('input[data-doc]');
+  const allChecked = Array.from(boxes).every(b => b.checked);
+  boxes.forEach(b => b.checked = !allChecked);
+  e.target.textContent = allChecked ? 'Select all' : 'Deselect all';
+});
+
+function projectMeta() {
+  return {
+    name: document.getElementById('projectName').value.trim() || '[Project Name]',
+    type: document.getElementById('projectType').value,
+    date: document.getElementById('eventDate').value || '',
+    location: document.getElementById('location').value.trim() || '',
+    dri: document.getElementById('leadDRI').value.trim() || ''
+  };
+}
+
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project';
+}
+
+function driveRoot(type) {
+  if (type === 'Industry Event') return 'IndustryEvents_FY27';
+  if (type === 'Creative Ops')   return 'CreativeOps_FY27';
+  return 'LiveEvent_FY27';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+document.getElementById('generateBtn').addEventListener('click', () => {
+  const selected = Array.from(document.querySelectorAll('input[data-doc]:checked'))
+    .map(b => b.dataset.doc);
+
+  if (selected.length === 0) {
+    alert('Select at least one document.');
+    return;
+  }
+
+  const meta = projectMeta();
+  const slug = slugify(meta.name === '[Project Name]' ? '' : meta.name);
+  const root = driveRoot(meta.type);
+
+  document.getElementById('folderPath').textContent = `${root}/${meta.name}/`;
+  document.getElementById('slackPlanning').textContent = `#${slug}-planning`;
+  document.getElementById('slackProduction').textContent = `#${slug}-production`;
+
+  const docCards = document.getElementById('docCards');
+  docCards.innerHTML = selected.map(id => {
+    const t = TEMPLATES.find(x => x.id === id);
+    const filename = `${meta.name} — ${t.name}`;
+    const url = t.url && t.url.length ? t.url : '#';
+
+    const tip = t.tip
+      ? `<div class="tip">💡 <strong>Tip:</strong> ${escapeHtml(t.tip).replace(/^Tip:\s*/, '')}</div>`
+      : '';
+
+    if (t.processUrl) {
+      return `
+        <div class="doc-card">
+          <div class="name">${escapeHtml(t.name)}</div>
+          <a class="open" href="${t.processUrl}" target="_blank" rel="noopener">${escapeHtml(t.processLabel)}</a>
+          ${tip}
+        </div>
+      `;
+    }
+
+    return `
+      <div class="doc-card">
+        <div class="name">${escapeHtml(t.name)}</div>
+        <a class="open" href="${url}" target="_blank" rel="noopener">Open template →</a>
+        <div class="instr">
+          Open this link, click <strong>File → Make a copy</strong>, rename it using the file name below, and save it into your project folder.
+        </div>
+        <div class="copy-row">
+          <span class="label">File name</span>
+          <span class="val" id="fname-${t.id}">${escapeHtml(filename)}</span>
+          <button class="copy-btn" data-copy-target="fname-${t.id}">Copy</button>
+        </div>
+        ${tip}
+      </div>
+    `;
+  }).join('');
+
+  // Project wrap document — always shown
+  const wrapFile = `${meta.name} — Project Wrap Document`;
+  document.getElementById('wrapFileName').textContent = wrapFile;
+  document.getElementById('wrapTemplateLink').href = TEMPLATE_URLS.wrap || '#';
+
+  bindCopyButtons();
+
+  const results = document.getElementById('results');
+  results.classList.add('show');
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+function bindCopyButtons() {
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.copyTarget);
+      if (!target) return;
+      const text = target.textContent;
+      const done = () => {
+        const original = btn.textContent;
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('copied');
+        }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+  });
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { /* noop */ }
+  document.body.removeChild(ta);
+}
+
+bindCopyButtons();
+</script>
+</body>
+</html>
