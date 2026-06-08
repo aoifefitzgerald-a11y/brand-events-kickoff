@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Events Kickoff Tool</title>
+<style>
+  :root {
+    --bg: #f6f6f4;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --muted: #6b6b6b;
+    --line: #e5e5e2;
+    --accent-soft: #efece6;
+    --link: #2266dd;
+    --ok: #1a7f37;
+    --warn: #b06a00;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter Tight", "Inter", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 32px 80px; }
+  header.page { margin-bottom: 28px; }
+  h1 { font-size: 32px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  .sub { color: var(--muted); font-size: 15px; }
+  section.card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  h2 { font-size: 18px; margin: 0 0 18px; letter-spacing: -0.01em; }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+  label.field { display: block; margin-bottom: 14px; }
+  label.field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], input[type="date"], select {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 15px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font-family: inherit;
+    color: var(--ink);
+  }
+  input:focus, select:focus { outline: 2px solid var(--ink); outline-offset: 1px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .doc-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .doc-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .doc-item:hover { background: #fafaf8; }
+  .doc-item input[type="checkbox"] { margin-top: 3px; transform: scale(1.1); accent-color: var(--ink); }
+  .doc-item .title { font-weight: 500; font-size: 15px; }
+  .doc-item .desc { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .select-all { font-size: 12px; color: var(--muted); cursor: pointer; user-select: none; }
+  .select-all:hover { color: var(--ink); text-decoration: underline; }
+
+  button.primary {
+    appearance: none;
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    padding: 14px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  button.primary:hover { background: #000; }
+
+  .results { display: none; }
+  .results.show { display: block; }
+  .doc-card.done { border-color: #1a7f37; background: #f3faf4; }
+  .save-note { margin-top: 10px; font-size: 13px; color: #1a7f37; font-weight: 600; }
+
+  .step { margin-bottom: 18px; }
+  .step:last-child { margin-bottom: 0; }
+  .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--ink);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .doc-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: #fff;
+  }
+  .doc-card .name { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+  .doc-card .instr { font-size: 13px; color: var(--muted); margin: 8px 0 10px; line-height: 1.5; }
+  .doc-card .instr strong { color: var(--ink); }
+  .doc-card a.open {
+    display: inline-block;
+    color: var(--link);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  .doc-card a.open:hover { text-decoration: underline; }
+
+  .tip {
+    margin: 10px 0 12px;
+    padding: 10px 14px;
+    background: #fff8e1;
+    border-left: 3px solid #f0b400;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #4a4a48;
+    line-height: 1.5;
+  }
+  .tip strong { color: var(--ink); }
+
+  .embedded {
+    margin: 12px 0;
+    padding: 14px 16px;
+    background: #fafaf8;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .embedded + .embedded { margin-top: 8px; }
+  .embedded .embedded-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .embedded ul { padding-left: 0; margin: 0; list-style: none; }
+  .embedded ul li {
+    font-size: 13.5px;
+    color: var(--ink);
+    padding: 5px 0 5px 22px;
+    position: relative;
+    line-height: 1.45;
+  }
+  .embedded.checklist ul li::before {
+    content: "☐";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .embedded.list ul li::before {
+    content: "•";
+    position: absolute;
+    left: 6px;
+    top: 4px;
+    color: var(--muted);
+  }
+
+  .copy-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--accent-soft);
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+  }
+  .copy-row .label {
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-right: 4px;
+  }
+  .copy-row .val { flex: 1; word-break: break-all; }
+  .copy-btn {
+    appearance: none;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { border-color: var(--ink); }
+  .copy-btn.copied { background: var(--ok); color: #fff; border-color: var(--ok); }
+
+  .reminder {
+    padding: 12px 14px;
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    background: var(--accent-soft);
+    font-size: 13px;
+    color: #4a4a48;
+    margin-top: 10px;
+  }
+  .reminder strong { color: var(--ink); }
+
+  .wrap-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid var(--line);
+  }
+  .wrap-section h2 { font-size: 20px; margin-bottom: 6px; }
+  .wrap-section .sub { margin-bottom: 18px; }
+  .wrap-card { border-left: 3px solid var(--warn); }
+  .wrap-card .deadline {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 10px;
+    background: #fff5e6;
+    color: var(--warn);
+    font-size: 12.5px;
+    font-weight: 500;
+    border-radius: 6px;
+  }
+
+  .field-help { font-size: 12px; color: var(--muted); margin-top: 5px; }
+
+  .gen-btn {
+    appearance: none;
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    padding: 9px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 7px;
+    cursor: pointer;
+    font-family: inherit;
+    margin-bottom: 10px;
+  }
+  .gen-btn:hover { background: #000; }
+  .gen-btn:disabled { opacity: 0.55; cursor: default; }
+  .gen-status { font-size: 13px; margin: 0 0 10px; min-height: 1px; }
+  .gen-status.working { color: var(--warn); }
+  .gen-status.done { color: var(--ok); }
+  .gen-status.error { color: #b3261e; }
+  .ref-link {
+    display: inline-block;
+    margin: 0 0 10px 12px;
+    color: var(--link);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .ref-link:hover { text-decoration: underline; }
+  .ics-link { display: block; }
+  .ics-link .ref-link { margin: 6px 0 0 0; }
+
+  .api-note { font-size: 12px; color: var(--muted); margin-top: 12px; }
+  .api-note a { color: var(--link); cursor: pointer; text-decoration: underline; }
+
+  .server-line { margin-bottom: 20px; }
+  .server-status { font-size: 13px; }
+  .server-status.up { color: var(--ok); }
+  .server-status.down { color: #b3261e; }
+
+  .how-to {
+    margin-bottom: 20px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .how-to summary {
+    cursor: pointer;
+    padding: 16px 28px;
+    font-weight: 600;
+    font-size: 15px;
+    list-style: none;
+    user-select: none;
+  }
+  .how-to summary::-webkit-details-marker { display: none; }
+  .how-to summary::before { content: "▸ "; color: var(--muted); }
+  .how-to[open] summary::before { content: "▾ "; }
+  .how-to ol { margin: 0 28px 20px; padding-left: 20px; color: #4a4a48; font-size: 14px; line-height: 1.7; }
+
+  .setup-card {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--ink);
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    background: #fafaf8;
+  }
+  .setup-card .name { font-weight: 600; font-size: 15px; margin-bottom: 8px; }
+  .setup-card .instr { font-size: 13px; color: var(--muted); margin: 6px 0; line-height: 1.5; }
+  .setup-card .instr strong { color: var(--ink); }
+  .setup-card a.open { display: inline-block; color: var(--link); font-weight: 500; font-size: 14px; text-decoration: none; margin-top: 6px; }
+  .setup-card a.open:hover { text-decoration: underline; }
+
+  .note-warn {
+    margin: 10px 0 12px;
+    padding: 10px 14px;
+    background: #fff4e5;
+    border-left: 3px solid #e8820c;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #7a4a00;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .note-guide {
+    margin: 10px 0 12px;
+    padding: 12px 14px;
+    background: #f3f6fb;
+    border-left: 3px solid var(--link);
+    border-radius: 6px;
+    font-size: 13px;
+    color: #3a3a48;
+    line-height: 1.55;
+  }
+  .note-guide-head { font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .note-guide ul { margin: 0; padding-left: 18px; }
+  .note-guide li { margin: 2px 0; }
+  .note-guide li strong { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="server-line">
+    <div class="server-status" id="serverStatus"></div>
+  </div>
+  <header class="page">
+    <h1>Brand Events Kickoff Tool <span style="font-size:14px;color:var(--muted);font-weight:400;">v2 · server-powered</span></h1>
+    <div class="sub">Fill in the project details, pick the documents you need, and the server creates each one as a real Google Doc in your Google Drive — copied from the blank template and pre-filled with your details. Save each into your own project folder afterwards.</div>
+  </header>
+
+  <details class="how-to">
+    <summary>How to use this tool</summary>
+    <ol>
+      <li>Fill in your project details in the form below.</li>
+      <li>Select the documents you need.</li>
+      <li>Click Generate — each document will be created in your Google Drive pre-filled with your project details.</li>
+      <li>Open each document using the links provided and save into your project folder.</li>
+      <li>Complete each document as your project progresses.</li>
+      <li>At the end of your project, complete the Project Wrap Document within one week of your event wrapping.</li>
+    </ol>
+  </details>
+
+  <section class="card">
+    <h2>Project details</h2>
+    <div class="grid-2">
+      <label class="field">
+        <span>Project name</span>
+        <input type="text" id="projectName" placeholder="e.g. Fin Labs NYC">
+      </label>
+      <label class="field">
+        <span>Project type</span>
+        <select id="projectType">
+          <option value="Industry Event">Industry Event</option>
+          <option value="Live Event">Live Event</option>
+          <option value="Creative Ops">Creative Ops</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid-3">
+      <label class="field">
+        <span>Event date</span>
+        <input type="date" id="eventDate">
+      </label>
+      <label class="field">
+        <span>Location</span>
+        <input type="text" id="location" placeholder="e.g. New York, NY">
+      </label>
+      <label class="field">
+        <span>Lead DRI</span>
+        <input type="text" id="leadDRI" placeholder="e.g. Aoife Fitzgerald">
+      </label>
+    </div>
+    <label class="field" style="margin-bottom:0;">
+      <span>One pager link (if available)</span>
+      <input type="text" id="onePagerLink" placeholder="Paste Google Doc link here">
+      <div class="field-help">If Megan has created the one pager, paste the link here and Claude will use it to pre-fill your briefs</div>
+    </label>
+  </section>
+
+  <section class="card">
+    <h2>Select documents</h2>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+      <span class="select-all" id="selectAll">Select all</span>
+    </div>
+    <div class="doc-list" id="docList"></div>
+  </section>
+
+  <div style="margin-top: 24px;">
+    <button class="primary" id="generateBtn">Generate documents</button>
+    <div class="api-note">Copies each blank template into your Google Drive (My&nbsp;Drive) and pre-fills it with your project details, using gogcli — no sign-in, no API key. Save each file into your own project folder afterwards.</div>
+  </div>
+
+  <section class="card results" id="results" style="margin-top: 28px;">
+    <h2>Your documents</h2>
+    <div class="sub" style="margin-bottom: 20px;">Each template is copied into your Google Drive (My&nbsp;Drive) and pre-filled with your project details. Open each one and save it into your project folder.</div>
+    <div id="docCards"></div>
+  </section>
+</div>
+
+<script>
+// ============================================================
+// TEMPLATE LINKS — replace the empty strings with the blank
+// template URLs when they're ready.
+// ============================================================
+const TEMPLATE_URLS = {
+  // TEMPLATE: Project planning doc
+  planning:    'https://docs.google.com/spreadsheets/d/18AjBQyxtosFNDdaq0T9ksZoRTo_KgeE9lqUUJZjMO-4/edit?gid=189240415',
+  // TEMPLATE: Project production deck
+  production:  'https://docs.google.com/presentation/d/1APYKC2FZ4taN2J3UQsc2U-hNgev5PySJw_LJBISyQuY/edit',
+  // TEMPLATE: Photography brief
+  photography: 'https://docs.google.com/document/d/1NFN6TphQZZbM4mjtFNA9WiHf6pcx0HwrEGxWNvLhqV0/edit',
+  // TEMPLATE: Broadcast and film brief
+  broadcast:   'https://docs.google.com/document/d/1cFhyJG7gAtgImHnimlB1s2UBtsm9c2dbdusUaomZudU/edit',
+  // TEMPLATE: Film and content capture
+  film:        'https://docs.google.com/document/d/1LYw1sWPhyCX83MrktaygfEtyMfOikMvmajyWLp508ns/edit',
+  // TEMPLATE: Project reconciliation / wrap doc
+  wrap:        'https://docs.google.com/document/d/1jSCiqL7ezqqztUWfuyflIAvgn8umd1QKo3bw8Xx4A_w/edit'
+};
+
+// ICS brief is NOT a copyable template — it's a process the team follows.
+// Shown as a direct-link card in the document picker.
+const ICS_PROCESS_URL = 'https://docs.google.com/document/d/1z1kO7zTZgQ3geoQ66b5Lhpg3491rcKpn63m8Q66q-Pw/edit?tab=t.3p1mh0s3qww0#heading=h.wrnmqzhxibhg';
+
+const ONE_PAGER_TIP = 'Tip: Once the one pager has been created by Megan Moon, the photography brief and broadcast & film brief are much easier to complete. Use it as your reference before filling these in.';
+
+const TIME_SAVING_TIP = '💡 Time-saving tip: Once your planning doc, production deck and one pager have more information in them, open claude4data and paste in your document links — it will automatically pull all the information and build out a full shot list, video deliverables and brief.';
+
+const PLANNING_GUIDANCE_ITEMS = [
+  ['Milestones', 'fill in to the best of your ability'],
+  ['Vendor list', 'complete accurately so procurement has full visibility of supplier needs'],
+  ['Finance updates', 'input payment dates so finance can plan accordingly'],
+  ['Merch requirements', 'capture all merch needs here'],
+  ['Reporting', 'all reporting details must be captured here']
+];
+
+// Per-document notes shown inside each result card.
+const DOC_NOTES = {
+  photography: { warning: '⚠️ Remember to delete the overview section before sharing this brief with your supplier.', tip: TIME_SAVING_TIP },
+  broadcast:   { tip: TIME_SAVING_TIP },
+  film:        { tip: TIME_SAVING_TIP }
+};
+
+const FY27_FOLDER_URL = 'https://drive.google.com/drive/u/1/folders/1rG96hkNgNPWaG4HXj90ao_5-Qc2IjZ0b';
+
+// Reference / warning / guidance notes rendered inside a result card.
+function docNotesHtml(id) {
+  let html = '';
+  const n = DOC_NOTES[id];
+  if (n && n.warning) {
+    html += `<div class="note-warn">${escapeHtml(n.warning)}</div>`;
+  }
+  if (id === 'planning') {
+    const items = PLANNING_GUIDANCE_ITEMS.map(([k, v]) =>
+      `<li><strong>${escapeHtml(k)}</strong> — ${escapeHtml(v)}</li>`).join('');
+    html += `<div class="note-guide"><div class="note-guide-head">📋 All project owners must complete the following:</div><ul>${items}</ul></div>`;
+  }
+  if (n && n.tip) {
+    html += `<div class="tip">${escapeHtml(n.tip)}</div>`;
+  }
+  return html;
+}
+
+// The two setup steps shown at the top of the results checklist, before any
+// generated documents. Channel names are derived from the project name.
+function setupStepsHtml(meta) {
+  const slug = slugify(meta.name);
+  const subfolder = driveRoot(meta.type);
+  const planCh = '#' + slug + '-planning';
+  const prodCh = '#' + slug + '-production';
+  return `
+    <div class="setup-card">
+      <div class="name"><span class="step-num">1</span> Set up your Google Drive project folder</div>
+      <div class="instr">Create a new folder in the Brand Events FY27 folder. Name it after your project. Inside it create four subfolders: <strong>Finance</strong>, <strong>Final Assets</strong>, <strong>Production</strong>, <strong>Legal</strong>. This is the single source of truth for all briefs, assets, timelines, reviews, legal and finance.</div>
+      <div class="instr">Your project type lives under: <strong>${escapeHtml(subfolder)}</strong></div>
+      <a class="open" href="${FY27_FOLDER_URL}" target="_blank" rel="noopener">Open Brand Events FY27 folder →</a>
+    </div>
+    <div class="setup-card">
+      <div class="name"><span class="step-num">2</span> Create your Slack channels</div>
+      <div class="instr">Set up two Slack channels and invite all key stakeholders.</div>
+      <div class="copy-row" style="margin-bottom:6px;">
+        <span class="label">Planning</span>
+        <span class="val" id="setup-ch-plan">${escapeHtml(planCh)}</span>
+        <button class="copy-btn" data-copy-target="setup-ch-plan">Copy</button>
+      </div>
+      <div class="copy-row">
+        <span class="label">Production</span>
+        <span class="val" id="setup-ch-prod">${escapeHtml(prodCh)}</span>
+        <button class="copy-btn" data-copy-target="setup-ch-prod">Copy</button>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// Documents shown in the selectable list.
+// ============================================================
+const TEMPLATES = [
+  {
+    id: 'planning',
+    name: 'Project planning doc',
+    desc: 'Milestones, vendors, deliverables, weekly RAG log',
+    url: TEMPLATE_URLS.planning
+  },
+  {
+    id: 'production',
+    name: 'Project production deck',
+    desc: 'Activation concept, run of show, team roles, open items',
+    url: TEMPLATE_URLS.production
+  },
+  {
+    id: 'photography',
+    name: 'Photography brief',
+    desc: 'Shot list, non-negotiables, creative direction',
+    url: TEMPLATE_URLS.photography,
+    tip: ONE_PAGER_TIP
+  },
+  {
+    id: 'broadcast',
+    name: 'Broadcast and film brief',
+    desc: 'Filming goals, must-capture moments, shot list, tech requirements',
+    url: TEMPLATE_URLS.broadcast,
+    tip: ONE_PAGER_TIP
+  },
+  {
+    id: 'film',
+    name: 'Film and content capture',
+    desc: 'Capture plan, deliverables, formats, aspect ratios, distribution',
+    url: TEMPLATE_URLS.film,
+    tip: ONE_PAGER_TIP
+  },
+  {
+    id: 'wrap',
+    name: 'Project reconciliation doc',
+    desc: 'End-of-project record — partners, spend, assets, contacts',
+    url: TEMPLATE_URLS.wrap
+  }
+];
+
+function renderDocList() {
+  const container = document.getElementById('docList');
+  const checkboxes = TEMPLATES.map(d => `
+    <label class="doc-item">
+      <input type="checkbox" data-doc="${d.id}">
+      <div>
+        <div class="title">${d.name}</div>
+        <div class="desc">${d.desc}</div>
+      </div>
+    </label>
+  `).join('');
+  // ICS brief — not generated; a direct link to the process doc.
+  const icsCard = `
+    <div class="doc-item ics-link">
+      <div>
+        <div class="title">ICS brief</div>
+        <div class="desc">Creative brief + full asset list for the ICS team</div>
+        <a class="ref-link" href="${ICS_PROCESS_URL}" target="_blank" rel="noopener">Follow the ICS brief process outlined here →</a>
+      </div>
+    </div>
+  `;
+  container.innerHTML = checkboxes + icsCard;
+}
+renderDocList();
+
+document.getElementById('selectAll').addEventListener('click', (e) => {
+  const boxes = document.querySelectorAll('input[data-doc]');
+  const allChecked = Array.from(boxes).every(b => b.checked);
+  boxes.forEach(b => b.checked = !allChecked);
+  e.target.textContent = allChecked ? 'Select all' : 'Deselect all';
+});
+
+function projectMeta() {
+  const date = document.getElementById('eventDate').value || '';
+  return {
+    name: document.getElementById('projectName').value.trim() || '[Project Name]',
+    type: document.getElementById('projectType').value,
+    date: date,
+    dateFormatted: formatDate(date),
+    location: document.getElementById('location').value.trim() || '',
+    dri: document.getElementById('leadDRI').value.trim() || '',
+    onePager: document.getElementById('onePagerLink').value.trim() || ''
+  };
+}
+
+// The date input gives an ISO "YYYY-MM-DD" string. Parse the parts manually
+// (not via new Date(), which shifts the day across time zones) so the event
+// date shows correctly in every generated document's live date field.
+function formatDate(iso) {
+  if (!iso) return '';
+  const parts = iso.split('-').map(Number);
+  if (parts.length !== 3 || parts.some(n => !n)) return iso;
+  const [y, m, d] = parts;
+  const months = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+  return `${months[m - 1]} ${d}, ${y}`;
+}
+
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'project';
+}
+
+function driveRoot(type) {
+  if (type === 'Industry Event') return 'IndustryEvents_FY27';
+  if (type === 'Creative Ops')   return 'CreativeOps_FY27';
+  return 'LiveEvent_FY27';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// Builds the "Project details to copy into your document" block shown
+// beneath every template link. `prefix` keeps copy-target ids unique per card.
+function detailsBlock(meta, prefix) {
+  const fields = [
+    ['Project name', meta.name],
+    ['Project type', meta.type],
+    ['Event date',   meta.dateFormatted],
+    ['Location',     meta.location],
+    ['Lead DRI',     meta.dri]
+  ];
+  const rows = fields.map(([label, value], i) => {
+    const val = value && String(value).trim() ? value : '—';
+    const id = `detail-${prefix}-${i}`;
+    return `
+      <div class="copy-row" style="margin-bottom:6px;">
+        <span class="label">${escapeHtml(label)}</span>
+        <span class="val" id="${id}">${escapeHtml(val)}</span>
+        <button class="copy-btn" data-copy-target="${id}">Copy</button>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div class="embedded">
+      <div class="embedded-label">📋 Project details to copy into your document</div>
+      <div class="instr" style="margin-top:0;">Copy these details into your document header when you open the template.</div>
+      ${rows}
+    </div>
+  `;
+}
+
+// ============================================================
+// Local server — real Google Docs via Claude Code's Drive connection
+// ============================================================
+const SERVER_URL = 'http://localhost:3000';
+
+const ONE_PAGER_DOCS = ['photography', 'broadcast', 'film'];
+
+function setStatus(el, text, cls) {
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'gen-status' + (cls ? ' ' + cls : '');
+}
+
+// POST the form data to the local server, which uses Claude Code's Google
+// Drive connection to copy each template and fill in the project details.
+// Returns [{ id, name, url, fileName, error }].
+async function requestDocs(meta, docs) {
+  const res = await fetch(SERVER_URL + '/generate', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      meta: meta,
+      docs: docs.map(d => ({ id: d.id, name: d.name, desc: d.desc }))
+    })
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try { const j = await res.json(); detail = j.error || JSON.stringify(j); } catch (e) {}
+    throw new Error('Server error ' + res.status + ': ' + detail);
+  }
+  const data = await res.json();
+  return data.results || [];
+}
+
+// Update a result card: green tick + Open link + save note on success,
+// red error otherwise.
+function renderResult(doc, r) {
+  const card = document.getElementById('card-' + doc.id);
+  const tickEl = document.getElementById('tick-' + doc.id);
+  const statusEl = document.getElementById('genstatus-' + doc.id);
+  const linkEl = document.getElementById('link-' + doc.id);
+  const noteEl = document.getElementById('savenote-' + doc.id);
+  const retryEl = document.getElementById('retry-' + doc.id);
+  if (r && r.url) {
+    if (tickEl) tickEl.textContent = '✅';
+    const msg = r.unfilled
+      ? 'Created — details could not be auto-filled for this file type'
+      : 'Created in your Google Drive';
+    setStatus(statusEl, msg, 'done');
+    if (linkEl) { linkEl.href = r.url; linkEl.style.display = 'inline-block'; }
+    if (noteEl) noteEl.style.display = 'block';
+    if (retryEl) retryEl.style.display = 'none';
+    if (card) card.classList.add('done');
+  } else {
+    if (tickEl) tickEl.textContent = '⚠️';
+    setStatus(statusEl, ((r && r.error) ? r.error : 'No document was returned.'), 'error');
+    if (linkEl) linkEl.style.display = 'none';
+    if (noteEl) noteEl.style.display = 'none';
+    if (retryEl) retryEl.style.display = 'inline-block';
+  }
+}
+
+// Create one or more documents: call the server, render results.
+function createDocs(meta, docs) {
+  docs.forEach(d => setStatus(document.getElementById('genstatus-' + d.id), 'Creating in Google Drive…', 'working'));
+  requestDocs(meta, docs)
+    .then(results => {
+      docs.forEach(d => renderResult(d, results.find(x => x.id === d.id)));
+    })
+    .catch(e => {
+      const msg = (e && e.message) || String(e);
+      const friendly = /Failed to fetch|NetworkError/i.test(msg)
+        ? 'Could not reach the local server — is "node server.js" running?'
+        : msg;
+      docs.forEach(d => {
+        setStatus(document.getElementById('genstatus-' + d.id), '✗ ' + friendly, 'error');
+        const retryEl = document.getElementById('retry-' + d.id);
+        if (retryEl) retryEl.style.display = 'inline-block';
+      });
+    });
+}
+
+function docById(id) {
+  if (id === 'wrap') {
+    return { id: 'wrap', name: 'Project Wrap Document', desc: 'End-of-project reconciliation and handover record' };
+  }
+  return TEMPLATES.find(x => x.id === id);
+}
+
+// Bind every "Create"/"Retry" control (anything with data-gen) to createDocs.
+function bindGenButtons(meta) {
+  document.querySelectorAll('[data-gen]').forEach(btn => {
+    btn.onclick = () => createDocs(meta, [docById(btn.dataset.gen)]);
+  });
+}
+
+// Ping the server on load so the banner can show whether it's reachable.
+function checkServer() {
+  const el = document.getElementById('serverStatus');
+  fetch(SERVER_URL + '/health', { method: 'GET' })
+    .then(r => { if (el) { el.textContent = '● Server detected — you\'re good to go.'; el.className = 'server-status up'; } })
+    .catch(() => { if (el) { el.textContent = '● Server not detected yet — start it with "node server.js".'; el.className = 'server-status down'; } });
+}
+checkServer();
+
+document.getElementById('generateBtn').addEventListener('click', () => {
+  const selected = Array.from(document.querySelectorAll('input[data-doc]:checked'))
+    .map(b => b.dataset.doc);
+
+  if (selected.length === 0) {
+    alert('Select at least one document.');
+    return;
+  }
+
+  const meta = projectMeta();
+
+  const docCards = document.getElementById('docCards');
+  docCards.innerHTML = setupStepsHtml(meta) + selected.map(id => {
+    const t = TEMPLATES.find(x => x.id === id);
+    return `
+      <div class="doc-card" id="card-${t.id}">
+        <div class="name"><span id="tick-${t.id}">⏳</span> ${escapeHtml(t.name)}</div>
+        <div class="gen-status" id="genstatus-${t.id}">Creating in Google Drive…</div>
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;">
+          <a class="open" id="link-${t.id}" href="#" target="_blank" rel="noopener" style="display:none;">Open →</a>
+          <a class="ref-link" id="retry-${t.id}" data-gen="${t.id}" style="display:none;cursor:pointer;margin-left:0;">Retry →</a>
+        </div>
+        <div class="save-note" id="savenote-${t.id}" style="display:none;">💾 Save this to your project folder in Google Drive.</div>
+        ${docNotesHtml(t.id)}
+      </div>
+    `;
+  }).join('');
+
+  bindCopyButtons();
+  bindGenButtons(meta);
+
+  const results = document.getElementById('results');
+  results.classList.add('show');
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Create every selected document as a real Google file via gogcli, then
+  // show links. No tabs are opened, so there's nothing for a pop-up blocker
+  // to catch.
+  const docs = selected.map(id => TEMPLATES.find(x => x.id === id));
+  createDocs(meta, docs);
+});
+
+function bindCopyButtons() {
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    if (btn.dataset.bound) return;
+    btn.dataset.bound = '1';
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.copyTarget);
+      if (!target) return;
+      const text = target.textContent;
+      const done = () => {
+        const original = btn.textContent;
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('copied');
+        }, 1200);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+      } else {
+        fallbackCopy(text, done);
+      }
+    });
+  });
+}
+
+function fallbackCopy(text, done) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { /* noop */ }
+  document.body.removeChild(ta);
+}
+
+bindCopyButtons();
+</script>
+</body>
+</html>
